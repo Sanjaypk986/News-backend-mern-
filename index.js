@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const port = 3000;
@@ -7,15 +8,17 @@ const authorRoutes = require("./Routes/authorRoutes");
 const authRoutes = require("./Routes/authRoutes");
 const userRoutes = require("./Routes/userRoutes");
 const mongoose = require("mongoose");
-require("dotenv").config();
+var cookieParser = require('cookie-parser')
 
 // cors 
 app.use(cors());
+
 // Req.body
 app.use(express.json());
 
+// cookie parser to read cookies
+app.use(cookieParser());
 
-app.use(express.json());
 app.use("/articles", articleRoutes);
 app.use("/authors", authorRoutes);
 app.use("/users", userRoutes);
