@@ -11,13 +11,17 @@ const mongoose = require("mongoose");
 var cookieParser = require('cookie-parser')
 
 // cors 
-app.use(cors());
-
-// Req.body
-app.use(express.json());
+app.use(cors({
+  credentials : true,
+  origin:true
+}));
 
 // cookie parser to read cookies
 app.use(cookieParser());
+// Req.body
+app.use(express.json());
+
+
 
 app.use("/articles", articleRoutes);
 app.use("/authors", authorRoutes);
