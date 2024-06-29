@@ -15,7 +15,7 @@ const port = 3000;
 // CORS setup
 app.use(cors({
   credentials: true,
-  origin: true
+  origin: "https://fresh-feed.vercel.app"
 }));
 
 // Middleware setup
