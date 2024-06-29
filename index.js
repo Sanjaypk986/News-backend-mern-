@@ -1,21 +1,15 @@
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-
-const articleRoutes = require("./Routes/articleRoutes");
-const authorRoutes = require("./Routes/authorRoutes");
-const authRoutes = require("./Routes/authRoutes");
-const userRoutes = require("./Routes/userRoutes");
+const mongoose = require("mongoose");
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // CORS setup
 app.use(cors({
   credentials: true,
-  origin: true
+  origin: true  // You can also specify the exact origin if needed
 }));
 
 // Middleware setup
@@ -40,7 +34,7 @@ app.listen(port, () => {
 });
 
 // Database connection
-main().then(() => console.log("Connected to MongoDB")).catch((err) => console.log(err));
+main().then(() => console.log("Connected to MongoDB")).catch((err) => console.error(err));
 
 async function main() {
   await mongoose.connect(process.env.CONNECTION_STRING);
