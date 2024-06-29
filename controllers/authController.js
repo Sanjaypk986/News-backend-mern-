@@ -3,51 +3,46 @@ const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
 const login = async (req, res) => {
-  try {
-    // Get the data from req.body
-    const data = req.body;
-
-    // Check given email with database email
-    const user = await User.findOne({ email: data.email });
-
-    if (!user) {
-      return res.status(401).send("Unauthorized Access! Invalid email");
-    }
-
-    // Check password with database
-    const passwordMatch = bcrypt.compareSync(data.password, user.password);
-
-    if (passwordMatch) {
-      const token = jwt.sign(
-        { _id: user._id, email: user.email },
-        process.env.JWT_KEY, {expiresIn: "1hr"}
-      );
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure:true,
-        samSite:'none'});
-      res.send("Login success");
-    } else {
-      res.status(401).send("Unauthorized Access! Invalid password");
-    }
-  } catch (error) {
-    res.status(500).send("Internal Server Error");
+  // get data
+  const data = req.body;
+  // compare email with database using find one
+  const user = await User.findOne({ email: data.email }).exec();
+  // user not available
+  if (!user) {
+    return res.status(401).send("invalid Email id");
+  }
+  // check password with database with bcrypt compare
+  const passwordMatch = bcrypt.compareSync(data.password, user.password);
+  if (passwordMatch) {
+    // create a token
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_TOKEN,
+      { expiresIn: "1hr" }
+    );
+    res.cookie("token", token, { httpOnly: true });
+    res.send("login");
+  } else {
+    res.status(401).send("Unauthoraized Access! Wrong Password");
   }
 };
 
+// verify login
 const verifyLogin = async (req, res) => {
-  if (req.cookies.token) {
+  if (req.cookies && req.cookies.token) {
     try {
-      const payload = jwt.verify(req.cookies.token, process.env.JWT_KEY);
-      console.log(payload);
+      const payLoad = jwt.verify(req.cookies.token, process.env.JWT_TOKEN);
       res.json({ verified: true });
     } catch (error) {
-      res.status(401).send("Unauthoraized Access!");
+      console.error("JWT verification error:", error);
+      res.status(401).send("Unauthorized Access!");
     }
   } else {
     res.json({ verified: false });
   }
 };
+
+//   logout
 
 const logout = async (req, res) => {
   res.cookie("token", "", { expires: new Date(0), httpOnly: true });
