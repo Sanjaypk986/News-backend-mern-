@@ -1,24 +1,58 @@
-const Article = require("../models/articleModel")
+const Article = require("../models/articleModel");
 
-const getAllArticles = async(req, res) => {
-    const articles = await Article.find({})
-    res.json(articles)
-}
-const getArticleById = async(req, res) => {
+const getAllArticles = async (req, res, next) => {
+  try {
+    const articles = await Article.find({});
+    res.json(articles);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getArticleById = async (req, res, next) => {
+  try {
     const article = await Article.findById(req.params.articleId);
-    res.json(article)
-}
-const addArtcle = async(req, res) => {
-    const article = new Article(req.body)
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+    res.json(article);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const addArticle = async (req, res, next) => {
+  try {
+    const article = new Article(req.body);
     await article.save();
-    res.json(article)
-}
-const updateArticleById = async(req, res) => {
-    const updatedArticle = await Article.findByIdAndUpdate(req.params.articleId, req.body, { new: true })
-    res.json(updatedArticle)
-}
-const deleteArticleById = async(req, res) => {
+    res.status(201).json(article);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateArticleById = async (req, res, next) => {
+  try {
+    const updatedArticle = await Article.findByIdAndUpdate(req.params.articleId, req.body, { new: true });
+    if (!updatedArticle) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+    res.json(updatedArticle);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteArticleById = async (req, res, next) => {
+  try {
     const deletedArticle = await Article.findByIdAndDelete(req.params.articleId);
-    res.send('Article Deleted')
-}
-module.exports = {getAllArticles,getArticleById,addArtcle,updateArticleById,deleteArticleById}
+    if (!deletedArticle) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+    res.send('Article Deleted');
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAllArticles, getArticleById, addArticle, updateArticleById, deleteArticleById };

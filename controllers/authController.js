@@ -3,31 +3,25 @@ const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
 const login = async (req, res) => {
-  // get data
-  const data = req.body;
-  // compare email with database using find one
-  const user = await User.findOne({ email: data.email }).exec();
-  // user not available
-  if (!user) {
-    return res.status(401).send("invalid Email id");
-  }
-  // check password with database with bcrypt compare
-  const passwordMatch = bcrypt.compareSync(data.password, user.password);
-  if (passwordMatch) {
-    // create a token
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_TOKEN,
-      { expiresIn: "1hr" }
-    );
-    res.cookie("token", token, { httpOnly: true });
-    res.send("login");
-  } else {
-    res.status(401).send("Unauthoraized Access! Wrong Password");
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email }).exec();
+    if (!user) {
+      return res.status(401).send("Invalid Email ID");
+    }
+    const passwordMatch = bcrypt.compareSync(password, user.password);
+    if (passwordMatch) {
+      const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_TOKEN, { expiresIn: "1h" });
+      res.cookie("token", token, { httpOnly: true });
+      res.send("Login success");
+    } else {
+      res.status(401).send("Unauthorized Access! Wrong Password");
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-// verify login
 const verifyLogin = async (req, res) => {
   if (req.cookies && req.cookies.token) {
     try {
@@ -42,11 +36,13 @@ const verifyLogin = async (req, res) => {
   }
 };
 
-//   logout
-
 const logout = async (req, res) => {
-  res.cookie("token", "", { expires: new Date(0), httpOnly: true });
-  res.send("Logged Out");
+  try {
+    res.cookie("token", "", { expires: new Date(0), httpOnly: true });
+    res.send("Logged Out");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports = { login, verifyLogin, logout };

@@ -1,41 +1,65 @@
 const bcrypt = require("bcrypt");
-const saltRounds = 10;
 const User = require("../models/userModel");
+const saltRounds = 10;
 
 const getAllUsers = async (req, res) => {
-    const users = await User.find({})
-    res.json(users)
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 const getUserById = async (req, res) => {
-  const user = await User.findById(req.params.userId);
-  res.json(user)
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 const addUser = async (req, res) => {
-  // get data
-  const data = req.body;
-  // store password
-  const password = req.body.password;
-  // hash/encrypt password
-  const hash = bcrypt.hashSync(password, saltRounds);
-//   // create document using req.body, pass as object and change password from data
-  //using spred operator to get all data and we want to write changable value and set that hash.
-  const user = new User({
-    ...data,
-    password: hash,
-  });
-  // save document
-  await user.save();
-  // response
-  res.json(user);
+  try {
+    const data = req.body;
+    const password = data.password;
+    const hash = bcrypt.hashSync(password, saltRounds);
+    const user = new User({ ...data, password: hash });
+    await user.save();
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 const updateUserById = async (req, res) => {
- const updateUser = await User.findByIdAndUpdate(req.params.userId, req.body, { new: true })
- res.json(updateUser)
+  try {
+    const updatedUser = await User.findByIdAndUpdate(req.params.userId, req.body, { new: true });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 const deleteUserById = async (req, res) => {
+  try {
     const deletedUser = await User.findByIdAndDelete(req.params.userId);
-    res.send('User Deleted')
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.send("User Deleted");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 module.exports = {
   getAllUsers,
   getUserById,
