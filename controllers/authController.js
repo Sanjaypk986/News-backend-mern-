@@ -4,32 +4,45 @@ const jwt = require("jsonwebtoken");
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).exec();
+    // Get the data from req.body
+    const data = req.body;
+
+    // Check given email with database email
+    const user = await User.findOne({ email: data.email });
+
     if (!user) {
-      return res.status(401).send("Invalid Email ID");
+      return res.status(401).send("Unauthorized Access! Invalid email");
     }
-    const passwordMatch = bcrypt.compareSync(password, user.password);
+
+    // Check password with database
+    const passwordMatch = bcrypt.compareSync(data.password, user.password);
+
     if (passwordMatch) {
-      const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_TOKEN, { expiresIn: "1h" });
-      res.cookie("token", token, { httpOnly: true });
+      const token = jwt.sign(
+        { _id: user._id, email: user.email },
+        process.env.JWT_KEY, {expiresIn: "1hr"}
+      );
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure:true,
+        samSite:'none'});
       res.send("Login success");
     } else {
-      res.status(401).send("Unauthorized Access! Wrong Password");
+      res.status(401).send("Unauthorized Access! Invalid password");
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).send("Internal Server Error");
   }
 };
 
 const verifyLogin = async (req, res) => {
-  if (req.cookies && req.cookies.token) {
+  if (req.cookies.token) {
     try {
-      const payLoad = jwt.verify(req.cookies.token, process.env.JWT_TOKEN);
+      const payload = jwt.verify(req.cookies.token, process.env.JWT_KEY);
+      console.log(payload);
       res.json({ verified: true });
     } catch (error) {
-      console.error("JWT verification error:", error);
-      res.status(401).send("Unauthorized Access!");
+      res.status(401).send("Unauthoraized Access!");
     }
   } else {
     res.json({ verified: false });
@@ -37,12 +50,8 @@ const verifyLogin = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-  try {
-    res.cookie("token", "", { expires: new Date(0), httpOnly: true });
-    res.send("Logged Out");
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  res.cookie("token", "", { expires: new Date(0), httpOnly: true });
+  res.send("Logged Out");
 };
 
 module.exports = { login, verifyLogin, logout };
