@@ -1,12 +1,12 @@
 const express = require('express')
-const { getAllArticles, getArticleById, addArtcle, updateArticleById, deleteArticleById } = require('../controllers/articleController')
+const { getAllArticles, getArticleById, updateArticleById, deleteArticleById, addArticle } = require('../controllers/articleController')
 const router = express.Router()
 
 router.get('/', getAllArticles)
 
 router.get('/:articleId', getArticleById)
 
-router.post('/', addArtcle)
+router.post('/', addArticle)
 
 router.patch('/:articleId', updateArticleById)
 
