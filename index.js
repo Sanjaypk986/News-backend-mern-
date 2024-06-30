@@ -10,12 +10,12 @@ const authRoutes = require("./Routes/authRoutes");
 const userRoutes = require("./Routes/userRoutes");
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Use the port from .env
 
 // CORS setup
 app.use(cors({
   credentials: true,
-  origin: "https://fresh-feed.vercel.app"
+  origin: true
 }));
 
 // Middleware setup
@@ -34,14 +34,18 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message });
 });
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
-
 // Database connection
-main().then(() => console.log("Connected to MongoDB")).catch((err) => console.log(err));
+const main = async () => {
+  try {
+    await mongoose.connect(process.env.CONNECTION_STRING);
+    console.log("Connected to MongoDB");
+    app.listen(port, () => {
+      console.log(`Server listening on port ${port}`);
+    });
+  } catch (error) {
+    console.error("Failed to connect to MongoDB", error);
+    process.exit(1); // Exit process with failure
+  }
+};
 
-async function main() {
-  await mongoose.connect(process.env.CONNECTION_STRING);
-}
+main();
