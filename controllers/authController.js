@@ -21,7 +21,7 @@ const login = async (req, res) => {
       // create a token
       const token = jwt.sign(
         { id: user._id, email: user.email },
-        process.env.jWT_TOKEN,
+        process.env.JWT_TOKEN,
         { expiresIn: "1hr" }
       );
 
@@ -45,7 +45,7 @@ const login = async (req, res) => {
 const verifyLogin = async (req, res) => {
   if (req.cookies && req.cookies.token) {
     try {
-      const payLoad = jwt.verify(req.cookies.token, process.env.jWT_TOKEN);
+      const payLoad = jwt.verify(req.cookies.token, process.env.JWT_TOKEN);
       res.json({ verified: true });
     } catch (error) {
       console.error("JWT verification error:", error);
